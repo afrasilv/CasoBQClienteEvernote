@@ -10,6 +10,12 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
+
+        buildConfigField "String", "EVERNOTE_CONSUMER_KEY", (project.hasProperty('EVERNOTE_CONSUMER_KEY') ? "\"$EVERNOTE_CONSUMER_KEY\"" : "\"aalex12\"")
+        buildConfigField "String", "EVERNOTE_CONSUMER_SECRET", (project.hasProperty('EVERNOTE_CONSUMER_SECRET') ? "\"$EVERNOTE_CONSUMER_SECRET\"" : "\"64a655f54dda4529\"")
+        buildConfigField "String", "EVERNOTE_DEVELOPER_KEY", (project.hasProperty('EVERNOTE_DEVELOPER_KEY') ? "\"$EVERNOTE_DEVELOPER_KEY\"" : "null")
+        buildConfigField "String", "EVERNOTE_NOTE_STORE_URL", (project.hasProperty('EVERNOTE_NOTE_STORE_URL') ? "\"$EVERNOTE_NOTE_STORE_URL\"" : "null")
+
     }
     buildTypes {
         release {
@@ -23,4 +29,6 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.1.1'
+    compile 'com.android.support:design:23.1.1'
+    compile 'com.evernote:android-sdk:2.0.0-RC3'
 }
