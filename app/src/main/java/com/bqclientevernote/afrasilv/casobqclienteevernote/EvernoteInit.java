@@ -11,8 +11,8 @@ import java.util.Locale;
  */
 public class EvernoteInit extends Application {
 
-    private static final String CONSUMER_KEY = "aalex12";
-    private static final String CONSUMER_SECRET = "64a655f54dda4529";
+    private static final String CONSUMER_KEY = "aalex12-8143";
+    private static final String CONSUMER_SECRET = "7f51f235db3bfe04";
     private static final EvernoteSession.EvernoteService EVERNOTE_SERVICE = EvernoteSession.EvernoteService.SANDBOX;
 
     EvernoteSession mEvernoteSession;
@@ -27,7 +27,6 @@ public class EvernoteInit extends Application {
                 .setLocale(Locale.ENGLISH)
                 .build(CONSUMER_KEY, CONSUMER_SECRET)
                 .asSingleton();
-
 
     }
 }
