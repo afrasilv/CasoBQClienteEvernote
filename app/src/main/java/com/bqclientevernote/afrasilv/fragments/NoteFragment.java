@@ -2,17 +2,18 @@ package com.bqclientevernote.afrasilv.fragments;
 
 import android.app.Fragment;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListAdapter;
 
+import com.bqclientevernote.afrasilv.adapters.NoteAdapter;
 import com.bqclientevernote.afrasilv.casobqclienteevernote.R;
+import com.evernote.edam.notestore.NoteMetadata;
 import com.evernote.edam.type.Note;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -21,37 +22,47 @@ import java.util.List;
  */
 public class NoteFragment extends Fragment {
 
-    private ListAdapter mAdapter;
-    private AbsListView mListView;
-
+    private ArrayList<NoteMetadata> noteList;
+    private RecyclerView mRecyclerView;
+    private RecyclerView.Adapter mAdapter;
+    private RecyclerView.LayoutManager mLayoutManager;
     public NoteFragment() {
     }
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mAdapter = new ArrayAdapter<NoteWrapped>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1);
     }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_note, container, false);
 
         // Set the adapter
-        mListView = (AbsListView) view.findViewById(android.R.id.list);
-        ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
+        mRecyclerView = (RecyclerView) view.findViewById(R.id.my_recycler_view);
+        //((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
 
-        // Set OnItemClickListener so we can be notified on item clicks
-//        mListView.setOnItemClickListener(this);
+        mRecyclerView.setHasFixedSize(true);
+
+        mLayoutManager = new LinearLayoutManager(getActivity());
+        mRecyclerView.setLayoutManager(mLayoutManager);
 
         return view;
     }
 
-    public void setNotes(List<Note> notes) {
-        ArrayAdapter<NoteWrapped> adapter = (ArrayAdapter<NoteWrapped>) mAdapter;
-        for (Note note : notes) {
-            adapter.add(new NoteWrapped(note));
+    public void setNotes(List<NoteMetadata> notes) {
+
+        if((noteList == null)||(!noteList.isEmpty()))
+            noteList = new ArrayList<>();
+
+        for (NoteMetadata note : notes) {
+            noteList.add(note);
         }
+
+        mAdapter = new NoteAdapter(getActivity().getBaseContext(), noteList, getActivity());
+        mRecyclerView.setAdapter(mAdapter);
     }
 
     private class NoteWrapped {

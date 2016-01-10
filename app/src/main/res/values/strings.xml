@@ -3,6 +3,8 @@
 
     <!-- Strings related to login -->
     <string name="action_logout">Logout!</string>
+    <string name="close">Close</string>
+    <string name="edit_note">Edit Note</string>
 
 
 

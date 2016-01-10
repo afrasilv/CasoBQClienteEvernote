@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity implements NotebookFragment.
         loginToEvernote();
         if (! mEvernoteSession.isLoggedIn()) {
             mEvernoteSession.authenticate(this);
-            //finish();
+            finish();
             return;
         }
 
