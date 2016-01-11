@@ -5,13 +5,20 @@ import android.app.FragmentManager;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
-import com.bqclientevernote.afrasilv.asyntask.GetNoteMetada;
 import com.bqclientevernote.afrasilv.fragments.NoteFragment;
-import com.evernote.edam.notestore.NotesMetadataList;
+import com.evernote.client.android.EvernoteSession;
+import com.evernote.client.android.asyncclient.EvernoteCallback;
+import com.evernote.client.android.asyncclient.EvernoteNoteStoreClient;
+import com.evernote.edam.error.EDAMNotFoundException;
+import com.evernote.edam.error.EDAMSystemException;
+import com.evernote.edam.error.EDAMUserException;
+import com.evernote.edam.notestore.NoteFilter;
+import com.evernote.edam.notestore.NoteList;
+import com.evernote.edam.type.Note;
 import com.evernote.edam.type.Notebook;
-
-import java.util.concurrent.ExecutionException;
+import com.evernote.thrift.TException;
 
 
 public class NoteActivity extends Activity {
@@ -22,25 +29,11 @@ public class NoteActivity extends Activity {
         setContentView(R.layout.activity_note);
         Notebook notebook = (Notebook) getIntent().getSerializableExtra("notebook");
 
-        GetNoteMetada getNoteMetada = new GetNoteMetada(this, notebook);
-        getNoteMetada.execute();
+        NoteFilter filter = new NoteFilter();
+        filter.setNotebookGuid(notebook.getGuid());
 
+        final EvernoteNoteStoreClient noteStoreClient = EvernoteSession.getInstance().getEvernoteClientFactory().getNoteStoreClient();
 
-        NotesMetadataList notesMetadataList = null;
-        try {
-            notesMetadataList = getNoteMetada.get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        };
-
-        FragmentManager fmgr = getFragmentManager();
-        NoteFragment fragment = (NoteFragment) fmgr.findFragmentById(R.id.note_fragment);
-        fragment.setNotes(notesMetadataList.getNotes());
-
-
-        /*
         noteStoreClient.findNotesAsync(filter, 0, 100, new EvernoteCallback<NoteList>() {
             @Override
             public void onSuccess(NoteList noteList) {
@@ -55,7 +48,6 @@ public class NoteActivity extends Activity {
                 Toast.makeText(NoteActivity.this, "Error ", Toast.LENGTH_SHORT).show();
             }
         });
-        */
     }
 
 

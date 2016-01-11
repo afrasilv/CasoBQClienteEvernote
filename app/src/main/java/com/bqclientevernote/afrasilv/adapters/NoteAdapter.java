@@ -14,7 +14,10 @@ import android.widget.TextView;
 import com.afollestad.materialdialogs.GravityEnum;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.bqclientevernote.afrasilv.casobqclienteevernote.R;
+import com.evernote.client.android.EvernoteSession;
+import com.evernote.client.android.asyncclient.EvernoteNoteStoreClient;
 import com.evernote.edam.notestore.NoteMetadata;
+import com.evernote.edam.type.Note;
 
 import java.util.ArrayList;
 
@@ -23,13 +26,13 @@ import java.util.ArrayList;
  */
 public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
     private Context context;
-    private ArrayList<NoteMetadata> lista = new ArrayList<>();
+    private ArrayList<Note> lista = new ArrayList<>();
     private Activity activity;
     private String shareText;
     private int lastPosition = -1;
 
 
-    public NoteAdapter(Context context, ArrayList<NoteMetadata> lista, Activity activity) {
+    public NoteAdapter(Context context, ArrayList<Note> lista, Activity activity) {
         this.context = context;
         this.lista = lista;
         this.activity = activity;
@@ -79,6 +82,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
         holder.mNameNegTextView.setText(lista.get(position).getTitle());
 
         setAnimation(holder.mCard, position);
+
 
 
         holder.mCard.setOnClickListener(new View.OnClickListener() {

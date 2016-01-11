@@ -22,7 +22,7 @@ import java.util.List;
  */
 public class NoteFragment extends Fragment {
 
-    private ArrayList<NoteMetadata> noteList;
+    private ArrayList<Note> noteList;
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
@@ -52,12 +52,12 @@ public class NoteFragment extends Fragment {
         return view;
     }
 
-    public void setNotes(List<NoteMetadata> notes) {
+    public void setNotes(List<Note> notes) {
 
         if((noteList == null)||(!noteList.isEmpty()))
             noteList = new ArrayList<>();
 
-        for (NoteMetadata note : notes) {
+        for (Note note : notes) {
             noteList.add(note);
         }
 
