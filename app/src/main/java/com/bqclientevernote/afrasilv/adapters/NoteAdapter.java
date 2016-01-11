@@ -14,9 +14,6 @@ import android.widget.TextView;
 import com.afollestad.materialdialogs.GravityEnum;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.bqclientevernote.afrasilv.casobqclienteevernote.R;
-import com.evernote.client.android.EvernoteSession;
-import com.evernote.client.android.asyncclient.EvernoteNoteStoreClient;
-import com.evernote.edam.notestore.NoteMetadata;
 import com.evernote.edam.type.Note;
 
 import java.util.ArrayList;
@@ -91,6 +88,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
                 MaterialDialog dialog = new MaterialDialog.Builder(activity)
                         .title(lista.get(position).getTitle())
                         .titleGravity(GravityEnum.CENTER)
+                        .content(lista.get(position).getContent())
                         .positiveText(R.string.edit_note)
                         .negativeText(R.string.close)
                         .callback(new MaterialDialog.ButtonCallback() {
@@ -114,5 +112,17 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
     }
 
 
+    public void orderBy(int order){
+        if(order == 0)
+            orderByDate();
+        else
+            orderByName();
+    }
 
+    private void orderByDate() {
+
+    }
+
+    private void orderByName() {
+    }
 }

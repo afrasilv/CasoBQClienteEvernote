@@ -1,24 +1,25 @@
 package com.bqclientevernote.afrasilv.casobqclienteevernote;
 
 import android.app.FragmentManager;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.text.TextUtils;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.bqclientevernote.afrasilv.fragments.NotebookFragment;
+import com.bqclientevernote.afrasilv.asyntask.GetNoteMetada;
+import com.bqclientevernote.afrasilv.fragments.NoteFragment;
 import com.evernote.client.android.EvernoteSession;
 import com.evernote.client.android.asyncclient.EvernoteCallback;
 import com.evernote.client.android.asyncclient.EvernoteNoteStoreClient;
+import com.evernote.edam.notestore.NoteFilter;
+import com.evernote.edam.notestore.NoteList;
+import com.evernote.edam.type.Note;
 import com.evernote.edam.type.Notebook;
 
 import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity extends AppCompatActivity implements NotebookFragment.OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity {
 
     EvernoteSession mEvernoteSession;
     private static final String CONSUMER_KEY = "aalex12-8143";
@@ -27,6 +28,8 @@ public class MainActivity extends AppCompatActivity implements NotebookFragment.
     private static final EvernoteSession.EvernoteService EVERNOTE_SERVICE = EvernoteSession.EvernoteService.SANDBOX;
     private static final boolean SUPPORT_APP_LINKED_NOTEBOOKS = false;
 
+    private ArrayList<Note> noteList = new ArrayList<>();
+    private int listNotesSize;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,33 +76,67 @@ public class MainActivity extends AppCompatActivity implements NotebookFragment.
 
     private void loadNotes(){
         EvernoteNoteStoreClient noteStoreClient = mEvernoteSession.getEvernoteClientFactory().getNoteStoreClient();
+
+        final MainActivity mainActivity = this;
+
         noteStoreClient.listNotebooksAsync(new EvernoteCallback<List<Notebook>>() {
             @Override
             public void onSuccess(List<Notebook> result) {
-                List<String> namesList = new ArrayList<>(result.size());
                 for (Notebook notebook : result) {
-                    namesList.add(notebook.getName());
+                    NoteFilter filter = new NoteFilter();
+                    filter.setNotebookGuid(notebook.getGuid());
+
+                    final EvernoteNoteStoreClient noteStoreClient = EvernoteSession.getInstance().getEvernoteClientFactory().getNoteStoreClient();
+
+                    noteStoreClient.findNotesAsync(filter, 0, 100, new EvernoteCallback<NoteList>() {
+                        @Override
+                        public void onSuccess(NoteList noteList) {
+                            List<Note> notes = noteList.getNotes();
+
+                            setSize(notes.size());
+
+                            for (Note note : notes) {
+                                GetNoteMetada getNoteMetada = new GetNoteMetada(note.getGuid(), mainActivity);
+                                getNoteMetada.execute();
+                            }
+
+                        }
+
+                        @Override
+                        public void onException(Exception exception) {
+                            Log.e("ERROR", "Error retrieving notebooks", exception);
+                        }
+
+                    });
+
                 }
-                String notebookNames = TextUtils.join(", ", namesList);
-                Toast.makeText(getApplicationContext(), notebookNames + " notebooks have been retrieved", Toast.LENGTH_LONG).show();
 
 
-                FragmentManager fmgr = getFragmentManager();
-                NotebookFragment fragment = (NotebookFragment) fmgr.findFragmentById(R.id.notebook_list);
-                fragment.setNotebooks(result);
             }
+
+
 
             @Override
             public void onException(Exception exception) {
                 Log.e("ERROR", "Error retrieving notebooks", exception);
             }
         });
+
+
+
     }
 
-    @Override
-    public void onFragmentInteraction(Notebook notebook) {
-        Intent intent = new Intent(this, NoteActivity.class);
-        intent.putExtra("notebook", notebook);
-        startActivity(intent);
+    public void addNote(Note note){
+        this.noteList.add(note);
+        if(this.listNotesSize == this.noteList.size()){
+            FragmentManager fmgr = getFragmentManager();
+            NoteFragment fragment = (NoteFragment) fmgr.findFragmentById(R.id.note_fragment);
+            fragment.setNotes(noteList);
+        }
     }
+
+    public void setSize(int size){
+        this.listNotesSize = size;
+    }
+
 }

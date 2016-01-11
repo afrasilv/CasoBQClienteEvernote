@@ -10,7 +10,6 @@ import android.view.ViewGroup;
 
 import com.bqclientevernote.afrasilv.adapters.NoteAdapter;
 import com.bqclientevernote.afrasilv.casobqclienteevernote.R;
-import com.evernote.edam.notestore.NoteMetadata;
 import com.evernote.edam.type.Note;
 
 import java.util.ArrayList;

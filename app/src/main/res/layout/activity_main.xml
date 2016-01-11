@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:name="com.bqclientevernote.afrasilv.fragments.NotebookFragment"
-    android:id="@+id/notebook_list"
-    tools:layout="@layout/fragment_notebook_list"
+    android:name="com.bqclientevernote.afrasilv.fragments.NoteFragment"
+    android:id="@+id/note_fragment"
+    tools:layout="@layout/fragment_note"
     />
