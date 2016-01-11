@@ -16,7 +16,14 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.bqclientevernote.afrasilv.casobqclienteevernote.R;
 import com.evernote.edam.type.Note;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Created by alex on 10/01/16.
@@ -81,6 +88,11 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
         setAnimation(holder.mCard, position);
 
 
+        String content = lista.get(position).getContent();
+
+        Document doc = Jsoup.parse(content);
+
+        final String finalContent = doc.getElementsByTag("div").toString();
 
         holder.mCard.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -88,7 +100,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
                 MaterialDialog dialog = new MaterialDialog.Builder(activity)
                         .title(lista.get(position).getTitle())
                         .titleGravity(GravityEnum.CENTER)
-                        .content(lista.get(position).getContent())
+                        .content(finalContent)
                         .positiveText(R.string.edit_note)
                         .negativeText(R.string.close)
                         .callback(new MaterialDialog.ButtonCallback() {
@@ -111,18 +123,8 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
         });
     }
 
-
-    public void orderBy(int order){
-        if(order == 0)
-            orderByDate();
-        else
-            orderByName();
-    }
-
-    private void orderByDate() {
-
-    }
-
-    private void orderByName() {
+    public void updateNotes(ArrayList<Note> noteList) {
+        this.lista = noteList;
+        notifyDataSetChanged();
     }
 }

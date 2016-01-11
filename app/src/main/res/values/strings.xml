@@ -3,9 +3,13 @@
 
     <!-- Strings related to login -->
     <string name="action_logout">Logout!</string>
+
+    <!-- Strings related to dialogs -->
     <string name="close">Close</string>
     <string name="edit_note">Edit Note</string>
 
-
+    <!-- Strings related to menu info -->
+    <string name="menu_item_sort_note_title">Sort by title</string>
+    <string name="menu_item_sort_note_date">Sort by date</string>
 
 </resources>

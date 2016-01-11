@@ -13,6 +13,9 @@ import com.bqclientevernote.afrasilv.casobqclienteevernote.R;
 import com.evernote.edam.type.Note;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 
 
@@ -23,7 +26,7 @@ public class NoteFragment extends Fragment {
 
     private ArrayList<Note> noteList;
     private RecyclerView mRecyclerView;
-    private RecyclerView.Adapter mAdapter;
+    private NoteAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
     public NoteFragment() {
     }
@@ -64,6 +67,10 @@ public class NoteFragment extends Fragment {
         mRecyclerView.setAdapter(mAdapter);
     }
 
+    public void updateNotes(ArrayList<Note> noteList) {
+        mAdapter.updateNotes(noteList);
+    }
+
     private class NoteWrapped {
         private final String title;
 
@@ -76,4 +83,7 @@ public class NoteFragment extends Fragment {
             return title;
         }
     }
+
+
+
 }
