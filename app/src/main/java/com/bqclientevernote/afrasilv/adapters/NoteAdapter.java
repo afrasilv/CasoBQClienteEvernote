@@ -144,8 +144,8 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
                                         EditText newTitle = (EditText) dialog.findViewById(R.id.edit_title_note);
                                         EditText newContent = (EditText) dialog.findViewById(R.id.edit_content_note);
 
-                                        note.setContent(newContent.getText().toString());
                                         note.setTitle(newTitle.getText().toString());
+                                        note.setContent(newContent.getText().toString());
 
                                         EditNoteAsyntask editNoteAsyntask = new EditNoteAsyntask(note);
                                         editNoteAsyntask.execute();
@@ -167,6 +167,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
 
                         EditText newTitle = (EditText) editNote.findViewById(R.id.edit_title_note);
                         EditText newContent = (EditText) editNote.findViewById(R.id.edit_content_note);
+
 
                         newTitle.setText(note.getTitle());
                         newContent.setText(note.getContent());

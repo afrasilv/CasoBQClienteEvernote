@@ -17,4 +17,6 @@
     <string name="title_note">Title Note</string>
     <string name="content_note">Content Note</string>
 
+    <!-- Strings related to new note -->
+    <string name="new_note">New Note</string>
 </resources>

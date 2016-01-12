@@ -4,13 +4,21 @@ import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.GravityEnum;
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.bqclientevernote.afrasilv.asyntask.AddNoteAsyntask;
+import com.bqclientevernote.afrasilv.asyntask.EditNoteAsyntask;
 import com.bqclientevernote.afrasilv.asyntask.GetNoteMetada;
 import com.bqclientevernote.afrasilv.fragments.NoteFragment;
 import com.bqclientevernote.afrasilv.utils.Constants;
@@ -19,10 +27,14 @@ import com.bqclientevernote.afrasilv.utils.NoteTitleComparator;
 import com.evernote.client.android.EvernoteSession;
 import com.evernote.client.android.asyncclient.EvernoteCallback;
 import com.evernote.client.android.asyncclient.EvernoteNoteStoreClient;
+import com.evernote.edam.error.EDAMSystemException;
+import com.evernote.edam.error.EDAMUserException;
 import com.evernote.edam.notestore.NoteFilter;
 import com.evernote.edam.notestore.NoteList;
 import com.evernote.edam.type.Note;
 import com.evernote.edam.type.Notebook;
+import com.evernote.thrift.TException;
+import com.melnykov.fab.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,6 +45,10 @@ public class MainActivity extends AppCompatActivity {
 
     EvernoteSession mEvernoteSession;
     NoteFragment noteFragment;
+    FloatingActionButton fab;
+    private static final String CONTENT_TEXT_MASK =
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">\n<en-note><div>%s<br clear=\"none\"/></div></en-note>";
+
 
     private static final EvernoteSession.EvernoteService EVERNOTE_SERVICE = EvernoteSession.EvernoteService.SANDBOX;
     private static final boolean SUPPORT_APP_LINKED_NOTEBOOKS = false;
@@ -52,9 +68,49 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-
         loadNotes();
 
+        fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MaterialDialog editNote = new MaterialDialog.Builder(MainActivity.this)
+                        .title(R.string.new_note)
+                        .titleGravity(GravityEnum.CENTER)
+                        .customView(R.layout.edit_note_layout, true)
+                        .positiveText(R.string.save_changes)
+                        .negativeText(R.string.close)
+                        .onPositive(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                EditText newTitle = (EditText) dialog.findViewById(R.id.edit_title_note);
+                                EditText newContent = (EditText) dialog.findViewById(R.id.edit_content_note);
+
+                                Note note = new Note();
+                                note.setTitle(newTitle.getText().toString());
+                                note.setContent(String.format(CONTENT_TEXT_MASK, newContent.getText().toString()));
+
+                                AddNoteAsyntask addNoteAsyntask = new AddNoteAsyntask(note);
+                                addNoteAsyntask.execute();
+
+                                addSize(1);
+                                noteList.add(note);
+                                noteFragment.updateNotes(noteList);
+
+                                dialog.dismiss();
+                            }
+                        })
+                        .onNegative(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .build();
+
+                editNote.show();
+            }
+        });
     }
 
 
@@ -169,6 +225,8 @@ public class MainActivity extends AppCompatActivity {
             FragmentManager fmgr = getFragmentManager();
             noteFragment = (NoteFragment) fmgr.findFragmentById(R.id.note_fragment);
             noteFragment.setNotes(noteList);
+
+            fab.attachToRecyclerView(noteFragment.getmRecyclerView());
         }
     }
 

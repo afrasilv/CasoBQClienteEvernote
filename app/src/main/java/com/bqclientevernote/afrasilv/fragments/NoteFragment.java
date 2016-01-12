@@ -84,6 +84,9 @@ public class NoteFragment extends Fragment {
         }
     }
 
+    public RecyclerView getmRecyclerView(){
+        return this.mRecyclerView;
+    }
 
 
 }

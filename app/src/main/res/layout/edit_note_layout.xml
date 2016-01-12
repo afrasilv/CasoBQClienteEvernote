@@ -45,8 +45,9 @@
                 android:layout_marginTop="4dp"
                 android:text="@string/title_note"
                 android:textColor="#ff000000"
-                android:textSize="10sp"
-                android:textStyle="bold" />
+                android:textSize="10sp" />
+
+
 
             <TextView
                 android:id="@+id/content_note"
