@@ -3,6 +3,7 @@ package com.bqclientevernote.afrasilv.casobqclienteevernote;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -18,10 +19,13 @@ import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.GravityEnum;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.bqclientevernote.afrasilv.asyntask.AddNoteAsyntask;
+import com.bqclientevernote.afrasilv.asyntask.DirectAPIAsyntask;
 import com.bqclientevernote.afrasilv.asyntask.EditNoteAsyntask;
 import com.bqclientevernote.afrasilv.asyntask.GetNoteMetada;
 import com.bqclientevernote.afrasilv.fragments.NoteFragment;
 import com.bqclientevernote.afrasilv.utils.Constants;
+import com.bqclientevernote.afrasilv.utils.DrawPanelDialog;
+import com.bqclientevernote.afrasilv.utils.DrawingView;
 import com.bqclientevernote.afrasilv.utils.NoteDateComparator;
 import com.bqclientevernote.afrasilv.utils.NoteTitleComparator;
 import com.evernote.client.android.EvernoteSession;
@@ -34,7 +38,8 @@ import com.evernote.edam.notestore.NoteList;
 import com.evernote.edam.type.Note;
 import com.evernote.edam.type.Notebook;
 import com.evernote.thrift.TException;
-import com.melnykov.fab.FloatingActionButton;
+
+import net.i2p.android.ext.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -70,11 +75,26 @@ public class MainActivity extends AppCompatActivity {
 
         loadNotes();
 
-        fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+
+        final View addStringNote = findViewById(R.id.add_string_note);
+
+
+        final View addOCRNote = findViewById(R.id.add_drawing_note);
+
+        FloatingActionButton actionC = new FloatingActionButton(getBaseContext());
+        actionC.setTitle("Hide/Show Action above");
+        actionC.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                MaterialDialog editNote = new MaterialDialog.Builder(MainActivity.this)
+                addStringNote.setVisibility(addStringNote.getVisibility() == View.GONE ? View.VISIBLE : View.GONE);
+                addOCRNote.setVisibility(addOCRNote.getVisibility() == View.GONE ? View.VISIBLE : View.GONE);
+            }
+        });
+
+        addStringNote.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new MaterialDialog.Builder(MainActivity.this)
                         .title(R.string.new_note)
                         .titleGravity(GravityEnum.CENTER)
                         .customView(R.layout.edit_note_layout, true)
@@ -106,11 +126,24 @@ public class MainActivity extends AppCompatActivity {
                                 dialog.dismiss();
                             }
                         })
-                        .build();
-
-                editNote.show();
+                        .show();
             }
         });
+
+        addOCRNote.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new DrawPanelDialog(MainActivity.this, new DrawPanelDialog.Callback() {
+                    @Override
+                    public void onBitmapCreated(final Bitmap bitmap) {
+                        DirectAPIAsyntask ocrAPI = new DirectAPIAsyntask(MainActivity.this, bitmap);
+                        ocrAPI.execute();
+                    }
+                }).show();
+            }
+        });
+
+
     }
 
 
@@ -225,8 +258,6 @@ public class MainActivity extends AppCompatActivity {
             FragmentManager fmgr = getFragmentManager();
             noteFragment = (NoteFragment) fmgr.findFragmentById(R.id.note_fragment);
             noteFragment.setNotes(noteList);
-
-            fab.attachToRecyclerView(noteFragment.getmRecyclerView());
         }
     }
 
@@ -271,7 +302,45 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    public void setParseTextOCR(String parseTextOCR) {
+        MaterialDialog editNote = new MaterialDialog.Builder(MainActivity.this)
+                .title(R.string.new_note)
+                .titleGravity(GravityEnum.CENTER)
+                .customView(R.layout.edit_note_layout, true)
+                .positiveText(R.string.save_changes)
+                .negativeText(R.string.close)
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        EditText newTitle = (EditText) dialog.findViewById(R.id.edit_title_note);
+                        EditText newContent = (EditText) dialog.findViewById(R.id.edit_content_note);
 
+                        Note note = new Note();
+                        note.setTitle(newTitle.getText().toString());
+                        note.setContent(String.format(CONTENT_TEXT_MASK, newContent.getText().toString()));
 
+                        AddNoteAsyntask addNoteAsyntask = new AddNoteAsyntask(note);
+                        addNoteAsyntask.execute();
 
+                        addSize(1);
+                        noteList.add(note);
+                        noteFragment.updateNotes(noteList);
+
+                        dialog.dismiss();
+                    }
+                })
+                .onNegative(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        dialog.dismiss();
+                    }
+                })
+                .build();
+
+        EditText contentText = (EditText) editNote.findViewById(R.id.edit_content_note);
+
+        contentText.setText(parseTextOCR);
+
+        editNote.show();
+    }
 }
