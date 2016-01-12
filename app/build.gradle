@@ -11,8 +11,8 @@ android {
         versionCode 1
         versionName "1.0"
 
-        buildConfigField "String", "EVERNOTE_CONSUMER_KEY", (project.hasProperty('EVERNOTE_CONSUMER_KEY') ? "\"$EVERNOTE_CONSUMER_KEY\"" : "\"aalex12\"")
-        buildConfigField "String", "EVERNOTE_CONSUMER_SECRET", (project.hasProperty('EVERNOTE_CONSUMER_SECRET') ? "\"$EVERNOTE_CONSUMER_SECRET\"" : "\"64a655f54dda4529\"")
+        buildConfigField "String", "EVERNOTE_CONSUMER_KEY", (project.hasProperty('EVERNOTE_CONSUMER_KEY') ? "\"$EVERNOTE_CONSUMER_KEY\"" : "\"aalex12-2876\"")
+        buildConfigField "String", "EVERNOTE_CONSUMER_SECRET", (project.hasProperty('EVERNOTE_CONSUMER_SECRET') ? "\"$EVERNOTE_CONSUMER_SECRET\"" : "\"ad2dce2cbb14134c\"")
         buildConfigField "String", "EVERNOTE_DEVELOPER_KEY", (project.hasProperty('EVERNOTE_DEVELOPER_KEY') ? "\"$EVERNOTE_DEVELOPER_KEY\"" : "null")
         buildConfigField "String", "EVERNOTE_NOTE_STORE_URL", (project.hasProperty('EVERNOTE_NOTE_STORE_URL') ? "\"$EVERNOTE_NOTE_STORE_URL\"" : "null")
 
@@ -44,6 +44,5 @@ dependencies {
     compile 'org.jsoup:jsoup:1.8.3'
     compile 'net.i2p.android.ext:floatingactionbutton:1.10.1'
     compile 'com.microblink:blinkocr:2.2.0'
-    //compile project(':tess-two')
     compile 'com.rmtheis:tess-two:5.4.0'
 }

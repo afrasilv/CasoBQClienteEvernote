@@ -8,6 +8,7 @@ import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -22,25 +23,19 @@ import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.GravityEnum;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.bqclientevernote.afrasilv.asyntask.AddNoteAsyntask;
-import com.bqclientevernote.afrasilv.asyntask.DirectAPIAsyntask;
-import com.bqclientevernote.afrasilv.asyntask.EditNoteAsyntask;
 import com.bqclientevernote.afrasilv.asyntask.GetNoteMetada;
 import com.bqclientevernote.afrasilv.fragments.NoteFragment;
 import com.bqclientevernote.afrasilv.utils.Constants;
-import com.bqclientevernote.afrasilv.utils.DrawPanelDialog;
-import com.bqclientevernote.afrasilv.utils.DrawingView;
+import com.bqclientevernote.afrasilv.drawclass.DrawPanelDialog;
 import com.bqclientevernote.afrasilv.utils.NoteDateComparator;
 import com.bqclientevernote.afrasilv.utils.NoteTitleComparator;
 import com.evernote.client.android.EvernoteSession;
 import com.evernote.client.android.asyncclient.EvernoteCallback;
 import com.evernote.client.android.asyncclient.EvernoteNoteStoreClient;
-import com.evernote.edam.error.EDAMSystemException;
-import com.evernote.edam.error.EDAMUserException;
 import com.evernote.edam.notestore.NoteFilter;
 import com.evernote.edam.notestore.NoteList;
 import com.evernote.edam.type.Note;
 import com.evernote.edam.type.Notebook;
-import com.evernote.thrift.TException;
 import com.googlecode.tesseract.android.TessBaseAPI;
 
 import net.i2p.android.ext.floatingactionbutton.FloatingActionButton;
@@ -59,7 +54,6 @@ public class MainActivity extends AppCompatActivity {
 
     EvernoteSession mEvernoteSession;
     NoteFragment noteFragment;
-    FloatingActionButton fab;
     private static final String CONTENT_TEXT_MASK =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">\n<en-note><div>%s<br clear=\"none\"/></div></en-note>";
 
@@ -74,15 +68,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-
-        loginToEvernote();
-        if (! mEvernoteSession.isLoggedIn()) {
-            mEvernoteSession.authenticate(this);
-            return;
-        }
-
-        loadNotes();
 
 
         final View addStringNote = findViewById(R.id.add_string_note);
@@ -145,13 +130,13 @@ public class MainActivity extends AppCompatActivity {
                 new DrawPanelDialog(MainActivity.this, new DrawPanelDialog.Callback() {
                     @Override
                     public void onBitmapCreated(final Bitmap bitmap) {
-                        String path = provideTesseractLangPath(getApplicationContext());
+                        String path = provideTesseractLangPath();
 
 
                         TessBaseAPI tessBaseAPI = provideTessBaseAPI(path);
                         String recognizedText = "";
 
-                        if(tessBaseAPI != null) {
+                        if (tessBaseAPI != null) {
                             tessBaseAPI.setImage(bitmap);
                             recognizedText = tessBaseAPI.getUTF8Text();
 
@@ -203,56 +188,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-    }
-
-    String provideTesseractLangPath(Context appContext) {
-        String basePath =
-                Environment.getExternalStorageDirectory().getPath();
-        String tessDataFolder = "tessdata/";
-        String languageExtension = ".traineddata";
-        String externalLangPath = basePath + tessDataFolder + "spa" + languageExtension;
-        File dir = new File(basePath + tessDataFolder);
-        if (!dir.exists()) {
-            dir.mkdirs();
+        loginToEvernote();
+        if (! EvernoteSession.getInstance().isLoggedIn()) {
+            EvernoteSession.getInstance().authenticate(this);
+            return;
         }
-        if (!(new File(externalLangPath)).exists()) {
-            String assetLangPath = tessDataFolder + "spa" + languageExtension;
-            try {
-                copyFileFromAssetsToExternal(appContext, assetLangPath, externalLangPath);
-            } catch (IOException e) {
-                Log.i("ProvideTesseractLang", "Error copying files");
-                return "";
-            }
-        }
-        return basePath;
-    }
 
-
-    TessBaseAPI provideTessBaseAPI(String tesseractLangPath) {
-        TessBaseAPI tessBaseAPI = new TessBaseAPI();
-        if (!"".equals(tesseractLangPath)) {
-            tessBaseAPI.init(tesseractLangPath, "spa");
-            return tessBaseAPI;
-        } else {
-            return null;
-        }
-    }
-
-    private void copyFileFromAssetsToExternal(Context context, String assetPath, String externalPath)
-            throws IOException {
-        AssetManager assetManager = context.getAssets();
-        InputStream in = assetManager.open(assetPath);
-        OutputStream out = new FileOutputStream(externalPath);
-
-        // Transfer bytes from in to out
-        byte[] buf = new byte[1024];
-        int len;
-        while ((len = in.read(buf)) > 0) {
-            out.write(buf, 0, len);
-        }
-        in.close();
-        out.close();
+        loadNotes();
     }
 
     private void loginToEvernote() {
@@ -317,7 +259,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-
             @Override
             public void onException(Exception exception) {
                 Log.e("ERROR", "Error retrieving notebooks", exception);
@@ -337,27 +278,23 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "Login Failure", Toast.LENGTH_SHORT).show();
                 }
                 break;
-            case 66394:
-                // isLoggedIn() don't change immidiatelly. 1 sec delay is enough to wait it change
-                /*final Handler handler = new Handler();
-
-                    handler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {                        // your logging processor
-                            if ((resultCode == Activity.RESULT_OK) && ((mEvernoteSession.isLoggedIn()))){
-                                Toast.makeText(MainActivity.this, "Successfully login in", Toast.LENGTH_SHORT).show();
-                            }
-                            else {
-                                mEvernoteSession.authenticate(MainActivity.this);
-                                return;
-                            }
-                        }
-                    }, 3000);*/
-                break;
             default:
                 super.onActivityResult(requestCode, resultCode, data);
                     break;
             }
+
+        // isLoggedIn() don't change immidiatelly. 1 sec delay is enough to wait it change
+        final Handler handler = new Handler();
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if ((resultCode == Activity.RESULT_OK) && ((mEvernoteSession.isLoggedIn()))) {
+                    Toast.makeText(MainActivity.this, "Successfully login in", Toast.LENGTH_SHORT).show();
+                    loadNotes();
+                }
+            }
+        }, 1500);
     }
 
     public void addNote(Note note){
@@ -410,7 +347,55 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void setParseTextOCR(String parseTextOCR) {
+    // ------------------ OCR METHODS ------------------ //
+    private String provideTesseractLangPath() {
 
+        String basePath =
+                Environment.getExternalStorageDirectory().getAbsolutePath();
+        String tessDataFolder = "/tessdata/";
+        String languageExtension = ".traineddata";
+        String externalLangPath = basePath + tessDataFolder + "spa" + languageExtension;
+        File dir = new File(basePath + tessDataFolder);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        if (!(new File(externalLangPath)).exists()) {
+            String assetLangPath = tessDataFolder + "spa" + languageExtension;
+            try {
+                copyFileFromAssetsToExternal(this, assetLangPath, externalLangPath);
+            } catch (IOException e) {
+                Log.i("ProvideTesseractLang", "Error copying files");
+                return "";
+            }
+        }
+        return basePath;
     }
+
+
+    private TessBaseAPI provideTessBaseAPI(String tesseractLangPath) {
+        TessBaseAPI tessBaseAPI = new TessBaseAPI();
+        if (!"".equals(tesseractLangPath)) {
+            tessBaseAPI.init(tesseractLangPath, "spa");
+            return tessBaseAPI;
+        } else {
+            return null;
+        }
+    }
+
+    private void copyFileFromAssetsToExternal(Context context, String assetPath, String externalPath)
+            throws IOException {
+        AssetManager assetManager = context.getAssets();
+        InputStream in = assetManager.open(assetPath);
+        OutputStream out = new FileOutputStream(externalPath);
+
+        // Transfer bytes from in to out
+        byte[] buf = new byte[1024];
+        int len;
+        while ((len = in.read(buf)) > 0) {
+            out.write(buf, 0, len);
+        }
+        in.close();
+        out.close();
+    }
+
 }

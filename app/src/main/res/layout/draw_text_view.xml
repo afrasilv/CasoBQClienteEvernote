@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <com.bqclientevernote.afrasilv.utils.DrawingView
+    <com.bqclientevernote.afrasilv.drawclass.DrawingView
         android:id="@+id/drawing_panel_view"
         android:layout_width="match_parent"
         android:layout_height="300dp"/>

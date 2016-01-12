@@ -1,1 +1,1 @@
-include ':app', ':LibRecognizer', ':tess-two'
+include ':app'

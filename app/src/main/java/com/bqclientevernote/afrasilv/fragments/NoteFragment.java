@@ -28,6 +28,7 @@ public class NoteFragment extends Fragment {
     private RecyclerView mRecyclerView;
     private NoteAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
+
     public NoteFragment() {
     }
 
@@ -44,7 +45,6 @@ public class NoteFragment extends Fragment {
 
         // Set the adapter
         mRecyclerView = (RecyclerView) view.findViewById(R.id.my_recycler_view);
-        //((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
 
         mRecyclerView.setHasFixedSize(true);
 
@@ -70,23 +70,4 @@ public class NoteFragment extends Fragment {
     public void updateNotes(ArrayList<Note> noteList) {
         mAdapter.updateNotes(noteList);
     }
-
-    private class NoteWrapped {
-        private final String title;
-
-        public NoteWrapped(Note note) {
-            this.title = note.getTitle();
-        }
-
-        @Override
-        public String toString() {
-            return title;
-        }
-    }
-
-    public RecyclerView getmRecyclerView(){
-        return this.mRecyclerView;
-    }
-
-
 }
