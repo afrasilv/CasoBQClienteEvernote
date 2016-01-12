@@ -31,7 +31,7 @@ repositories {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile fileTree(include: ['tess-twp', '*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.android.support:recyclerview-v7:23.1.1'
@@ -44,4 +44,6 @@ dependencies {
     compile 'org.jsoup:jsoup:1.8.3'
     compile 'net.i2p.android.ext:floatingactionbutton:1.10.1'
     compile 'com.microblink:blinkocr:2.2.0'
+    //compile project(':tess-two')
+    compile 'com.rmtheis:tess-two:5.4.0'
 }

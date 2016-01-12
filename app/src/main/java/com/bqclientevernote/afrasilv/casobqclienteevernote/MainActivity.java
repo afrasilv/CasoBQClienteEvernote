@@ -2,9 +2,12 @@ package com.bqclientevernote.afrasilv.casobqclienteevernote;
 
 import android.app.Activity;
 import android.app.FragmentManager;
+import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -38,9 +41,15 @@ import com.evernote.edam.notestore.NoteList;
 import com.evernote.edam.type.Note;
 import com.evernote.edam.type.Notebook;
 import com.evernote.thrift.TException;
+import com.googlecode.tesseract.android.TessBaseAPI;
 
 import net.i2p.android.ext.floatingactionbutton.FloatingActionButton;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -136,8 +145,59 @@ public class MainActivity extends AppCompatActivity {
                 new DrawPanelDialog(MainActivity.this, new DrawPanelDialog.Callback() {
                     @Override
                     public void onBitmapCreated(final Bitmap bitmap) {
-                        DirectAPIAsyntask ocrAPI = new DirectAPIAsyntask(MainActivity.this, bitmap);
-                        ocrAPI.execute();
+                        String path = provideTesseractLangPath(getApplicationContext());
+
+
+                        TessBaseAPI tessBaseAPI = provideTessBaseAPI(path);
+                        String recognizedText = "";
+
+                        if(tessBaseAPI != null) {
+                            tessBaseAPI.setImage(bitmap);
+                            recognizedText = tessBaseAPI.getUTF8Text();
+
+                            tessBaseAPI.end();
+                        }
+
+
+                        MaterialDialog editNote = new MaterialDialog.Builder(MainActivity.this)
+                                .title(R.string.new_note)
+                                .titleGravity(GravityEnum.CENTER)
+                                .customView(R.layout.edit_note_layout, true)
+                                .positiveText(R.string.save_changes)
+                                .negativeText(R.string.close)
+                                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                                    @Override
+                                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                        EditText newTitle = (EditText) dialog.findViewById(R.id.edit_title_note);
+                                        EditText newContent = (EditText) dialog.findViewById(R.id.edit_content_note);
+
+                                        Note note = new Note();
+                                        note.setTitle(newTitle.getText().toString());
+                                        note.setContent(String.format(CONTENT_TEXT_MASK, newContent.getText().toString()));
+
+                                        AddNoteAsyntask addNoteAsyntask = new AddNoteAsyntask(note);
+                                        addNoteAsyntask.execute();
+
+                                        addSize(1);
+                                        noteList.add(note);
+                                        noteFragment.updateNotes(noteList);
+
+                                        dialog.dismiss();
+                                    }
+                                })
+                                .onNegative(new MaterialDialog.SingleButtonCallback() {
+                                    @Override
+                                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                        dialog.dismiss();
+                                    }
+                                })
+                                .build();
+
+                        EditText contentText = (EditText) editNote.findViewById(R.id.edit_content_note);
+
+                        contentText.setText(recognizedText);
+
+                        editNote.show();
                     }
                 }).show();
             }
@@ -146,6 +206,54 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    String provideTesseractLangPath(Context appContext) {
+        String basePath =
+                Environment.getExternalStorageDirectory().getPath();
+        String tessDataFolder = "tessdata/";
+        String languageExtension = ".traineddata";
+        String externalLangPath = basePath + tessDataFolder + "spa" + languageExtension;
+        File dir = new File(basePath + tessDataFolder);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+        if (!(new File(externalLangPath)).exists()) {
+            String assetLangPath = tessDataFolder + "spa" + languageExtension;
+            try {
+                copyFileFromAssetsToExternal(appContext, assetLangPath, externalLangPath);
+            } catch (IOException e) {
+                Log.i("ProvideTesseractLang", "Error copying files");
+                return "";
+            }
+        }
+        return basePath;
+    }
+
+
+    TessBaseAPI provideTessBaseAPI(String tesseractLangPath) {
+        TessBaseAPI tessBaseAPI = new TessBaseAPI();
+        if (!"".equals(tesseractLangPath)) {
+            tessBaseAPI.init(tesseractLangPath, "spa");
+            return tessBaseAPI;
+        } else {
+            return null;
+        }
+    }
+
+    private void copyFileFromAssetsToExternal(Context context, String assetPath, String externalPath)
+            throws IOException {
+        AssetManager assetManager = context.getAssets();
+        InputStream in = assetManager.open(assetPath);
+        OutputStream out = new FileOutputStream(externalPath);
+
+        // Transfer bytes from in to out
+        byte[] buf = new byte[1024];
+        int len;
+        while ((len = in.read(buf)) > 0) {
+            out.write(buf, 0, len);
+        }
+        in.close();
+        out.close();
+    }
 
     private void loginToEvernote() {
         String consumerKey;
@@ -303,44 +411,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void setParseTextOCR(String parseTextOCR) {
-        MaterialDialog editNote = new MaterialDialog.Builder(MainActivity.this)
-                .title(R.string.new_note)
-                .titleGravity(GravityEnum.CENTER)
-                .customView(R.layout.edit_note_layout, true)
-                .positiveText(R.string.save_changes)
-                .negativeText(R.string.close)
-                .onPositive(new MaterialDialog.SingleButtonCallback() {
-                    @Override
-                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                        EditText newTitle = (EditText) dialog.findViewById(R.id.edit_title_note);
-                        EditText newContent = (EditText) dialog.findViewById(R.id.edit_content_note);
 
-                        Note note = new Note();
-                        note.setTitle(newTitle.getText().toString());
-                        note.setContent(String.format(CONTENT_TEXT_MASK, newContent.getText().toString()));
-
-                        AddNoteAsyntask addNoteAsyntask = new AddNoteAsyntask(note);
-                        addNoteAsyntask.execute();
-
-                        addSize(1);
-                        noteList.add(note);
-                        noteFragment.updateNotes(noteList);
-
-                        dialog.dismiss();
-                    }
-                })
-                .onNegative(new MaterialDialog.SingleButtonCallback() {
-                    @Override
-                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                        dialog.dismiss();
-                    }
-                })
-                .build();
-
-        EditText contentText = (EditText) editNote.findViewById(R.id.edit_content_note);
-
-        contentText.setText(parseTextOCR);
-
-        editNote.show();
     }
 }
