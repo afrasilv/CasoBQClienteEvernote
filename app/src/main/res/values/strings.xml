@@ -7,9 +7,14 @@
     <!-- Strings related to dialogs -->
     <string name="close">Close</string>
     <string name="edit_note">Edit Note</string>
+    <string name="save_changes">Save Changes</string>
 
     <!-- Strings related to menu info -->
     <string name="menu_item_sort_note_title">Sort by title</string>
     <string name="menu_item_sort_note_date">Sort by date</string>
+
+    <!-- Strings related to edit note -->
+    <string name="title_note">Title Note</string>
+    <string name="content_note">Content Note</string>
 
 </resources>
