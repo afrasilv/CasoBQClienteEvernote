@@ -24,9 +24,9 @@ import com.afollestad.materialdialogs.GravityEnum;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.bqclientevernote.afrasilv.asyntask.AddNoteAsyntask;
 import com.bqclientevernote.afrasilv.asyntask.GetNoteMetada;
+import com.bqclientevernote.afrasilv.drawclass.DrawPanelDialog;
 import com.bqclientevernote.afrasilv.fragments.NoteFragment;
 import com.bqclientevernote.afrasilv.utils.Constants;
-import com.bqclientevernote.afrasilv.drawclass.DrawPanelDialog;
 import com.bqclientevernote.afrasilv.utils.NoteDateComparator;
 import com.bqclientevernote.afrasilv.utils.NoteTitleComparator;
 import com.evernote.client.android.EvernoteSession;
@@ -40,29 +40,41 @@ import com.googlecode.tesseract.android.TessBaseAPI;
 
 import net.i2p.android.ext.floatingactionbutton.FloatingActionButton;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import hod.api.hodclient.HODApps;
+import hod.api.hodclient.HODClient;
+import hod.api.hodclient.IHODClientCallback;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements IHODClientCallback{
 
     EvernoteSession mEvernoteSession;
     NoteFragment noteFragment;
     private static final String CONTENT_TEXT_MASK =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">\n<en-note><div>%s<br clear=\"none\"/></div></en-note>";
 
-
     private static final EvernoteSession.EvernoteService EVERNOTE_SERVICE = EvernoteSession.EvernoteService.SANDBOX;
     private static final boolean SUPPORT_APP_LINKED_NOTEBOOKS = false;
 
     private ArrayList<Note> noteList = new ArrayList<>();
     private int listNotesSize = 0;
+    private String textFromOCR;
+    private HODClient hodClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
                 new DrawPanelDialog(MainActivity.this, new DrawPanelDialog.Callback() {
                     @Override
                     public void onBitmapCreated(final Bitmap bitmap) {
-                        String path = provideTesseractLangPath();
+                        /*String path = provideTesseractLangPath();
 
 
                         TessBaseAPI tessBaseAPI = provideTessBaseAPI(path);
@@ -143,46 +155,36 @@ public class MainActivity extends AppCompatActivity {
                             tessBaseAPI.end();
                         }
 
+                        */
 
-                        MaterialDialog editNote = new MaterialDialog.Builder(MainActivity.this)
-                                .title(R.string.new_note)
-                                .titleGravity(GravityEnum.CENTER)
-                                .customView(R.layout.edit_note_layout, true)
-                                .positiveText(R.string.save_changes)
-                                .negativeText(R.string.close)
-                                .onPositive(new MaterialDialog.SingleButtonCallback() {
-                                    @Override
-                                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                                        EditText newTitle = (EditText) dialog.findViewById(R.id.edit_title_note);
-                                        EditText newContent = (EditText) dialog.findViewById(R.id.edit_content_note);
+                        File f = new File(MainActivity.this.getCacheDir(), "temp.png");
+                        try {
+                            f.createNewFile();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
 
-                                        Note note = new Note();
-                                        note.setTitle(newTitle.getText().toString());
-                                        note.setContent(String.format(CONTENT_TEXT_MASK, newContent.getText().toString()));
+//Convert bitmap to byte array
+                        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 0 /*ignored for PNG*/, bos);
+                        byte[] bitmapdata = bos.toByteArray();
 
-                                        AddNoteAsyntask addNoteAsyntask = new AddNoteAsyntask(note);
-                                        addNoteAsyntask.execute();
+//write the bytes in file
+                        FileOutputStream fos = null;
+                        try {
+                            fos = new FileOutputStream(f);
+                            fos.write(bitmapdata);
+                            fos.flush();
+                            fos.close();
+                            ;
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
 
-                                        addSize(1);
-                                        noteList.add(note);
-                                        noteFragment.updateNotes(noteList);
+                        useHODClient(f.getAbsolutePath());
 
-                                        dialog.dismiss();
-                                    }
-                                })
-                                .onNegative(new MaterialDialog.SingleButtonCallback() {
-                                    @Override
-                                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                                        dialog.dismiss();
-                                    }
-                                })
-                                .build();
-
-                        EditText contentText = (EditText) editNote.findViewById(R.id.edit_content_note);
-
-                        contentText.setText(recognizedText);
-
-                        editNote.show();
                     }
                 }).show();
             }
@@ -195,6 +197,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         loadNotes();
+
+        hodClient = new HODClient("9dff88f6-0429-4397-b30e-bef0662eacf2", this);
+
     }
 
     private void loginToEvernote() {
@@ -221,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
                 .asSingleton();
     }
 
-    private void loadNotes(){
+    private void loadNotes() {
         EvernoteNoteStoreClient noteStoreClient = mEvernoteSession.getEvernoteClientFactory().getNoteStoreClient();
 
         final MainActivity mainActivity = this;
@@ -398,4 +403,115 @@ public class MainActivity extends AppCompatActivity {
         out.close();
     }
 
+    public void setTextFromOCR(String textFromOCR) {
+        this.textFromOCR = textFromOCR;
+
+
+        final MaterialDialog editNote = new MaterialDialog.Builder(MainActivity.this)
+                .title(R.string.new_note)
+                .titleGravity(GravityEnum.CENTER)
+                .customView(R.layout.edit_note_layout, true)
+                .positiveText(R.string.save_changes)
+                .negativeText(R.string.close)
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        EditText newTitle = (EditText) dialog.findViewById(R.id.edit_title_note);
+                        EditText newContent = (EditText) dialog.findViewById(R.id.edit_content_note);
+
+                        Note note = new Note();
+                        note.setTitle(newTitle.getText().toString());
+                        note.setContent(String.format(CONTENT_TEXT_MASK, newContent.getText().toString()));
+
+                        AddNoteAsyntask addNoteAsyntask = new AddNoteAsyntask(note);
+                        addNoteAsyntask.execute();
+
+                        addSize(1);
+                        noteList.add(note);
+                        noteFragment.updateNotes(noteList);
+
+                        dialog.dismiss();
+                    }
+                })
+                .onNegative(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        dialog.dismiss();
+                    }
+                })
+                .build();
+
+
+        Toast.makeText(MainActivity.this, "foundtext " + textFromOCR, Toast.LENGTH_SHORT).show();
+
+        EditText contentText = (EditText) editNote.findViewById(R.id.edit_content_note);
+
+        contentText.setText(textFromOCR);
+
+        editNote.show();
+    }
+
+    private void useHODClient(String path) {
+        String hodApp = HODApps.OCR_DOCUMENT;
+        Map<String, Object> params = new HashMap<String, Object>();
+
+        params.put("file", path);
+        params.put("mode", "document_photo");
+
+        hodClient.PostRequest(params, hodApp, HODClient.REQ_MODE.ASYNC);
+    }
+
+    // implement delegated functions
+
+    /**************************************************************************************
+     * An async request will result in a response with a jobID. We parse the response to get
+     * the jobID and send a request for the actual content identified by the jobID.
+     **************************************************************************************/
+    @Override
+    public void requestCompletedWithJobID(String response) {
+        try {
+            JSONObject mainObject = new JSONObject(response);
+            if (!mainObject.isNull("jobID")) {
+                String jobID = mainObject.getString("jobID");
+                hodClient.GetJobResult(jobID);
+            }
+        } catch (Exception ex) {
+            ;//HandleException(response);
+        }
+    }
+
+    @Override
+    public void requestCompletedWithContent(String response) {
+        try {
+            JSONObject mainObject = new JSONObject(response);
+            JSONArray textBlockArray = mainObject.getJSONArray("actions");
+            int count = textBlockArray.length();
+            String recognizedText = "";
+            if (count > 0) {
+                for (int i = 0; i < count; i++) {
+                    JSONObject actions = textBlockArray.getJSONObject(i);
+                    JSONObject result = actions.getJSONObject("result");
+                    if (!result.isNull("text_block")) {
+                        JSONArray textArray = result.getJSONArray("text_block");
+                        count = textArray.length();
+                        if (count > 0) {
+                            for (int n = 0; n < count; n++) {
+                                JSONObject texts = textArray.getJSONObject(n);
+                                recognizedText += texts.getString("text");
+                            }
+                        }
+                    }
+                }
+            }
+
+            setTextFromOCR(recognizedText);
+        } catch (Exception ex) {
+            // handle exception
+        }
+    }
+
+    @Override
+    public void onErrorOccurred(String errorMessage) {
+        // handle error if any
+    }
 }

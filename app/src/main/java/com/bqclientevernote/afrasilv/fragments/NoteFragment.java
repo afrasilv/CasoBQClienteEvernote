@@ -13,9 +13,6 @@ import com.bqclientevernote.afrasilv.casobqclienteevernote.R;
 import com.evernote.edam.type.Note;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 
 

@@ -3,6 +3,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 23
     buildToolsVersion "23.0.2"
+    useLibrary 'org.apache.http.legacy'
 
     defaultConfig {
         applicationId "com.bqclientevernote.afrasilv.casobqclienteevernote"
@@ -10,6 +11,7 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
 
         buildConfigField "String", "EVERNOTE_CONSUMER_KEY", (project.hasProperty('EVERNOTE_CONSUMER_KEY') ? "\"$EVERNOTE_CONSUMER_KEY\"" : "\"aalex12-2876\"")
         buildConfigField "String", "EVERNOTE_CONSUMER_SECRET", (project.hasProperty('EVERNOTE_CONSUMER_SECRET') ? "\"$EVERNOTE_CONSUMER_SECRET\"" : "\"ad2dce2cbb14134c\"")
@@ -23,15 +25,23 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/ASL2.0'
+    }
 }
 
 repositories {
     maven { url "https://jitpack.io" }
-    maven { url 'http://maven.microblink.com' }
 }
 
 dependencies {
-    compile fileTree(include: ['tess-twp', '*.jar'], dir: 'libs')
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.android.support:recyclerview-v7:23.1.1'
@@ -43,6 +53,6 @@ dependencies {
     compile 'com.evernote:android-sdk:2.0.0-RC3'
     compile 'org.jsoup:jsoup:1.8.3'
     compile 'net.i2p.android.ext:floatingactionbutton:1.10.1'
-    compile 'com.microblink:blinkocr:2.2.0'
     compile 'com.rmtheis:tess-two:5.4.0'
+    compile project(':hodclient')
 }

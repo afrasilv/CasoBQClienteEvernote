@@ -17,23 +17,13 @@ import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.GravityEnum;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.bqclientevernote.afrasilv.asyntask.EditNoteAsyntask;
-import com.bqclientevernote.afrasilv.asyntask.GetNoteMetada;
 import com.bqclientevernote.afrasilv.casobqclienteevernote.R;
-import com.evernote.client.android.EvernoteSession;
-import com.evernote.edam.error.EDAMNotFoundException;
-import com.evernote.edam.error.EDAMSystemException;
-import com.evernote.edam.error.EDAMUserException;
 import com.evernote.edam.type.Note;
-import com.evernote.thrift.TException;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
 
 /**
  * Created by alex on 10/01/16.

@@ -2,14 +2,11 @@ package com.bqclientevernote.afrasilv.asyntask;
 
 import android.os.AsyncTask;
 
-import com.bqclientevernote.afrasilv.casobqclienteevernote.MainActivity;
 import com.evernote.client.android.EvernoteSession;
-import com.evernote.client.android.asyncclient.EvernoteNoteStoreClient;
 import com.evernote.edam.error.EDAMNotFoundException;
 import com.evernote.edam.error.EDAMSystemException;
 import com.evernote.edam.error.EDAMUserException;
 import com.evernote.edam.type.Note;
-import com.evernote.edam.type.Notebook;
 import com.evernote.thrift.TException;
 
 /**
